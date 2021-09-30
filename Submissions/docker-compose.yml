@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  environment:
+    image: pgi753/spectrum_challenge:phase1_test_env
+    network_mode: "host"
+  agent: 
+    image: agent:latest
+    network_mode: "host"
+    depends_on:
+      - environment

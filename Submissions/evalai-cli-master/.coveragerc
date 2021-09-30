@@ -1,0 +1,15 @@
+[run]
+omit =
+    */python?.?/*
+source = evalai/
+
+[report]
+exclude_lines =
+    import
+    main.add_command([a-z]*?)
+
+omit =
+    */python?.?/*
+    */tests/*
+    */.eggs/*
+    setup.py
