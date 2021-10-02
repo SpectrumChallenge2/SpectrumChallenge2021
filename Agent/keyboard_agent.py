@@ -10,7 +10,6 @@ class keyboardAgent:
 
     def run(self, run_time):
         self._env.start_simulation(time_us=run_time)
-        action = {'type': 'sensing'}
         self._freq_channel_list = self._env.freq_channel_list
         self._num_freq_channel = len(self._freq_channel_list)
         print('<Action Type>')
@@ -18,11 +17,11 @@ class keyboardAgent:
         print('tx_data_packet : (0 ~ {})\n'.format(self._num_freq_channel-1))
 
         while True:
-            observation = self._env.step(action=action)
-            print(observation)
             key = input('Action : ')
             action = self.keyboard_control(key=key)
             print(action)
+            observation = self._env.step(action=action)
+            print(observation)
 
     def keyboard_control(self, key):
         channel_list = []
