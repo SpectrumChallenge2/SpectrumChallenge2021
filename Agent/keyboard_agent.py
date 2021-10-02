@@ -19,9 +19,9 @@ class keyboardAgent:
         while True:
             key = input('Action : ')
             action = self.keyboard_control(key=key)
-            print(action)
+            print("Action =", action)
             observation = self._env.step(action=action)
-            print(observation)
+            print("Observation =", observation, "\n")
 
     def keyboard_control(self, key):
         channel_list = []
