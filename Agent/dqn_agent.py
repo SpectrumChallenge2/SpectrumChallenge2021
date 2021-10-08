@@ -47,33 +47,34 @@ class Agent:
         model.compile(loss='mse', optimizer=Adam(learning_rate=self._dnn_learning_rate))
         return model
 
-    def set_init(self, run_time):
-        self._env.start_simulation(time_us=run_time)
+    def set_init(self):
         initial_action = {'type': 'sensing'}
         observation_dict = self._env.step(initial_action)
-        self._observation = observation_dict_to_tensor_mapping[str(observation_dict)]
+        self._observation = observation_dict_to_tensor_mapping[str(observation_dict)]    # initial observation
 
-
-    def train(self, run_time, dnn_epochs):
+    def train(self, num_episode, run_time, dnn_epochs):
         self._env.disable_video_logging()
         self._env.disable_text_logging()
-        self.set_init(run_time)
-        self._replay_memory.clear()
-        print("Replay memory stack")
-        while True:
-            sim_finish = self.accumulate_replay_memory(self._epsilon)
-            if sim_finish:
-                break
-        observation, reward = self.replay()
-        self._model.fit(observation, reward, epochs=dnn_epochs)
+        for i in range(num_episode):
+            self._env.start_simulation(time_us=run_time)
+            self.set_init()
+            self._replay_memory.clear()
+            print("< episode %d >" % i)
+            while True:
+                sim_finish = self.accumulate_replay_memory(self._epsilon)
+                if sim_finish:
+                    break
+            observation, reward = self.replay()
+            self._model.fit(observation, reward, epochs=dnn_epochs)
+            print(f"(epsilon: {self._epsilon})")
+            self._epsilon = max(self._epsilon * self._epsilon_decay, self._min_epsilon)
         self._model.save_weights('my_model')
-        print(f"(epsilon: {self._epsilon})")
-        self._epsilon = max(self._epsilon * self._epsilon_decay, self._min_epsilon)
 
     def test(self, run_time: int):
         self._env.enable_video_logging()
         self._env.enable_text_logging()
-        self.set_init(run_time)
+        self._env.start_simulation(time_us=run_time)
+        self.set_init()
         self._model.load_weights('my_model')
         while True:
             action, _, _ = self.get_dnn_action_and_value(self._observation)
@@ -82,7 +83,7 @@ class Agent:
             if observation_dict == 0:
                 break
             self._observation = observation_dict_to_tensor_mapping[str(observation_dict)]
-            print(f"{self._env.get_score()}\r", end='', flush=True)
+            print(f"{self._env.get_score()            }\r", end='', flush=True)
 
     def get_dnn_action_and_value(self, observation):
         if observation.ndim == 1:
@@ -140,5 +141,8 @@ if __name__ == "__main__":
     env.connect()
     agent = Agent(environment=env, unit_packet_success_reward=1, unit_packet_failure_reward=-2, discount_factor=0.9,
                   dnn_learning_rate=0.001, initial_epsilon=1, epsilon_decay=0.95, min_epsilon=0.1)
-    agent.train(run_time=50000, dnn_epochs=1)
+
+    # When submitting, the training part should be excluded,
+    # and it should be submitted in a form that can be evaluated by loading the trained model like agent.test()
+    agent.train(num_episode=5, run_time=10000, dnn_epochs=1)
     agent.test(10000)
