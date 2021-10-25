@@ -2,7 +2,7 @@ version: '3'
 
 services:
   environment:
-    image: pgi753/spectrum_challenge:phase1_test_env
+    image: pgi753/spectrum_challenge:phase2_test_env
     network_mode: "host"
   agent: 
     image: agent:latest
